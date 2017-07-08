@@ -37,11 +37,18 @@ testRule(rule, {
     description: "Always. Example: value is interpolation of a single var spaces inside the interpolation.",
   }, {
     code: `
-      @media screen and (max-width:  #{$val} ) {
+      @media screen and (max-width:  #{ $val }) {
         a { display: none; }
       }
     `,
     description: "Always. Example: value is interpolation of a single var; spaces before and after the interpolation.",
+  }, {
+    code: `
+      @media screen and (max-width:  #{$val-name-hyphenated} ) {
+        a { display: none; }
+      }
+    `,
+    description: "Always. Example: value is interpolation of a single hyphenated var; spaces before and after the interpolation.",
   } ],
 
   reject: [ {
@@ -171,6 +178,16 @@ testRule(rule, {
     description: "Always. Example: math operation with a var as a value.",
   }, {
     code: `
+      @media screen and (min-width: $var-100px){
+        b { color: red; }
+      }
+    `,
+    line: 2,
+    column: 37,
+    message: messages.expected,
+    description: "Always. Example: math operation with a var as a value. No spaces between operators.",
+  }, {
+    code: `
       @media screen and (min-width: funcName($p)){
         b { color: red; }
       }
@@ -187,7 +204,7 @@ testRule(rule, {
   ruleName,
   config: ["never"],
   syntax: "scss",
-  
+
   accept: [ {
     code: `
       @media screen and (min-width: 100px + 10px){
@@ -247,6 +264,26 @@ testRule(rule, {
   }, {
     code: `
       @media screen and (max-width: #{$val + 10px} ) {
+        a { display: none; }
+      }
+    `,
+    line: 2,
+    column: 37,
+    message: messages.rejected,
+    description: "Never. Example: value is an interpolation of a math op on a var and a regular value.",
+  }, {
+    code: `
+      @media screen and (max-width: #{$val+10px} ) {
+        a { display: none; }
+      }
+    `,
+    line: 2,
+    column: 37,
+    message: messages.rejected,
+    description: "Never. Example: value is an interpolation of a math op on a var and a regular value.",
+  }, {
+    code: `
+      @media screen and (max-width: #{$val-10px} ) {
         a { display: none; }
       }
     `,

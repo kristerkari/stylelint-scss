@@ -57,7 +57,7 @@ export default function findOperators({
         lastModeIndex--
       }
     }
-    
+
     // If entering/exiting interpolation (may be inside a string)
     // Comparing with length-2 because `#{` at the very end doesnt matter
     if (character === "#" && i + 1 < string.length - 2 && string[i + 1] === "{") {
@@ -91,7 +91,7 @@ export default function findOperators({
       })
       if (callback) { callback(string, globalIndex, i, i) }
     }
-    
+
     // "<=", ">=", "!=", "=="
     if (substringStartingWithIndex.search(/^[><=!]=/) !== -1) {
       result.push({
@@ -130,13 +130,13 @@ export function mathOperatorCharType(string, index, isAfterColon) {
 
   const character = string[index]
   // console.log(string)
-  
+
   // ---- Processing + characters
   if (character === "+") {
     // console.log('checking plus')
     return checkPlus(string, index, isAfterColon)
   }
-  
+
   // ---- Processing - characters
   if (character === "-") {
     return checkMinus(string, index)
@@ -151,13 +151,13 @@ export function mathOperatorCharType(string, index, isAfterColon) {
   if (character === "%") {
     return checkPercent(string, index)
   }
-  
+
   // ---- Processing / character
   // http://sass-lang.com/documentation/file.SASS_REFERENCE.html#division-and-slash
   if (character === "/") {
     return checkSlash(string, index, isAfterColon)
   }
-  
+
   // console.log("nothing applies")
   return "char"
 }
@@ -182,25 +182,25 @@ export function mathOperatorCharType(string, index, isAfterColon) {
 function checkPlus(string, index, isAftercolon) {
   const before = string.substring(0, index)
   const after = string.substring(index + 1)
-  
+
   // If the character is at the beginning of the input
   const isAtStart_ = isAtStart(string, index)
   // If the character is at the end of the input
   const isAtEnd_ = isAtEnd(string, index)
   const isWhitespaceBefore = before.search(/\s$/) !== -1
   const isWhitespaceAfter = after.search(/^\s/) !== -1
-  
+
   const isValueWithUnitAfter_ = isValueWithUnitAfter(after)
   const isNumberAfter_ = isNumberAfter(after)
   const isInterpolationAfter_ = isInterpolationAfter(after)
   // The early check above helps prevent deep recursion here
   const isPrecedingOperator_ = isPrecedingOperator(string, index)
-  
+
   if (isAtStart_) {
     // console.log("+, `+<sth>` or `+ <sth>`")
     return "sign"
   }
-  
+
   // E.g. `1+1`, `string+#fff`
   if (!isAtStart_ && !isWhitespaceBefore && !isAtEnd_ && !isWhitespaceAfter) {
     // E.g. `1-+1`
@@ -236,7 +236,7 @@ function checkPlus(string, index, isAftercolon) {
         // console.log("+10px or +1, inside function or parens")
         return "op"
       }
-      
+
       // e.g. `#{10px +1}`
       if (isInsideInterpolation(string, index)) {
         // console.log('+, #{10px +1}')
@@ -263,7 +263,7 @@ function checkPlus(string, index, isAftercolon) {
     // console.log('sth +sth, default')
     return "op"
   }
-  
+
   // If the + is after a value, e.g. `$var+`
   if (!isAtStart_ && !isWhitespaceBefore) {
     // It is always an operator. Prior to Sass 4, `#{...}+` was differernt,
@@ -271,7 +271,7 @@ function checkPlus(string, index, isAftercolon) {
     // console.log('1+ sth')
     return "op"
   }
-  
+
   // If it has whitespaces on both sides
   // console.log('sth + sth')
   return "op"
@@ -297,7 +297,7 @@ function checkMinus(string, index) {
   const isAtEnd_ = isAtEnd(string, index)
   const isWhitespaceBefore = before.search(/\s$/) !== -1
   const isWhitespaceAfter = after.search(/^\s/) !== -1
-  
+
   const isValueWithUnitAfter_ = isValueWithUnitAfter(after)
   const isValueWithUnitBefore_ = isValueWithUnitBefore(before)
   const isNumberAfter_ = isNumberAfter(after)
@@ -307,12 +307,12 @@ function checkMinus(string, index) {
   const isParensBefore_ = isParensBefore(before)
   // The early check above helps prevent deep recursion here
   const isPrecedingOperator_ = isPrecedingOperator(string, index)
-  
+
   if (isAtStart_) {
     // console.log("-, -<sth> or - <sth>")
     return "sign"
   }
-  
+
   // `10 -    11`
   if (!isAtEnd_ && !isAtStart_ && isWhitespaceBefore && isWhitespaceAfter) {
     // console.log("-, Op: 10px -  10px")
@@ -325,7 +325,7 @@ function checkMinus(string, index) {
       // console.log("-, Op: <sth> -(...)")
       return "op"
     }
-    
+
     // e.g. `sth -1px`, `sth -1`.
     // Always a sign, even inside parens/function args
     if (
@@ -335,7 +335,7 @@ function checkMinus(string, index) {
       // console.log("-, sign: -1px or -1")
       return "sign"
     }
-    
+
     // e.g. `sth --1`, `sth +-2px`
     if (
       isValueWithUnitAfter_.is && isValueWithUnitAfter_.opsBetween ||
@@ -352,13 +352,13 @@ function checkMinus(string, index) {
       // console.log("-, char: -#{...}")
       return "char"
     }
-    
+
     // e.g. `#0af -#f0a`, and edge-cases can take a hike
     if (isHexColorAfter(after) && isHexColorBefore(before.trim())) {
       // console.log("-, op: #fff-, -#fff")
       return "op"
     }
-    
+
     // If the - is before a variable, than it's most likely an operator
     if (after[0] === "$") {
       if (isPrecedingOperator_) {
@@ -368,12 +368,12 @@ function checkMinus(string, index) {
       // console.log("-, op: -$var, NO other operator before")
       return "op"
     }
-    
+
     // By default let's make it an sign for now
     // console.log('-, sign: default in <sth> -<sth>')
     return "sign"
   }
-  
+
   // No whitespace before,
   // e.g. `10x- something`
   if (!isAtEnd_ && !isAtStart_ && !isWhitespaceBefore && isWhitespaceAfter) {
@@ -389,7 +389,7 @@ function checkMinus(string, index) {
     // console.log('-, char: default in <sth>- <sth>')
     return "char"
   }
-  
+
   // NO Whitespace,
   // e.g. `10px-1`
   if (!isAtEnd_ && !isAtStart_ && !isWhitespaceBefore && !isWhitespaceAfter) {
@@ -405,6 +405,11 @@ function checkMinus(string, index) {
         return "op"
       }
 
+      // `1-10px`
+      if (isValueWithUnitAfter_) {
+        return "op"
+      }
+
       // The - could be a "sign" here, but for now "char" does the job
     }
     // `1-$var`
@@ -412,7 +417,7 @@ function checkMinus(string, index) {
       // console.log("-, op: 1-$var")
       return "op"
     }
-    
+
     // `fn()-10px`
     if (isFunctionBefore(before) && (
       isNumberAfter_.is && !isNumberAfter_.opsBetween ||
@@ -445,7 +450,7 @@ function checkSlash(string, index, isAftercolon) {
   // Trimming these, as spaces before/after a slash don't matter
   const before = string.substring(0, index).trim()
   const after = string.substring(index + 1).trim()
-  
+
   const isValueWithUnitAfter_ = isValueWithUnitAfter(after)
   const isValueWithUnitBefore_ = isValueWithUnitBefore(before)
   const isNumberAfter_ = isNumberAfter(after)
@@ -458,13 +463,13 @@ function checkSlash(string, index, isAftercolon) {
     // console.log("/, interpolation")
     return "char"
   }
-  
+
   // e.g. `10px/normal`
   if (isStringBefore(before).is || isStringAfter(after)) {
     // console.log("/, string")
     return "char"
   }
-  
+
   // For all other value options (numbers, value+unit, hex color)
 
   // `$var/1`, `#fff/-$var`
@@ -473,25 +478,25 @@ function checkSlash(string, index, isAftercolon) {
     // console.log("/, variable")
     return "op"
   }
-  
+
   if (isFunctionBefore(before) || isFunctionAfter(after).is) {
     // console.log("/, function as operand")
     return "op"
   }
-  
+
   if (isParensBefore_ || isParensAfter_.is) {
     // console.log("/, function as operand")
     return "op"
   }
-  
+
   // `$var: 10px/2; // 5px`
   if (isAftercolon === true && (
     (isValueWithUnitAfter_.is || isNumberAfter_.is) &&
-    (isValueWithUnitBefore_ || isNumberBefore_) 
+    (isValueWithUnitBefore_ || isNumberBefore_)
   )) {
     return "op"
   }
-  
+
   // Quick check of the following operator symbol - if it is a math operator
   if (
     // +, *, % count as operators unless after interpolation or at the start
@@ -515,14 +520,14 @@ function checkSlash(string, index, isAftercolon) {
     // console.log("/, math op around")
     return "op"
   }
-  
+
   // e.g. `(1px/1)`, `fn(7 / 15)`, but not `url(8/11)`
   const isInsideFn = isInsideFunctionCall(string, index)
   if (isInsideParens(string, index) || isInsideFn.is && isInsideFn.fn !== "url") {
     // console.log("/, parens or function arg")
     return "op"
   }
-  
+
   // console.log("/, default")
   return "char"
 }
@@ -541,14 +546,14 @@ function checkPercent(string, index) {
   // Trimming these, as spaces before/after a slash don't matter
   const before = string.substring(0, index)
   const after = string.substring(index + 1)
-  
+
   // If the character is at the beginning of the input
   const isAtStart_ = isAtStart(string, index)
   // If the character is at the end of the input
   const isAtEnd_ = isAtEnd(string, index)
   const isWhitespaceBefore = before.search(/\s$/) !== -1
   const isWhitespaceAfter = after.search(/^\s/) !== -1
-  
+
   const isParensBefore_ = isParensBefore(before)
 
   // FIRST OFF. Interpolation on any of the sides is a NO-GO
@@ -556,12 +561,12 @@ function checkPercent(string, index) {
     // console.log("%, interpolation")
     return "char"
   }
-  
+
   if (isAtStart_ || isAtEnd_) {
     // console.log("%, start/end")
     return "char"
   }
-  
+
   // In `<sth> %<sth>` it's most likely an operator (except for inteprolation
   // checked above)
   if (isWhitespaceBefore && !isWhitespaceAfter) {
@@ -574,7 +579,7 @@ function checkPercent(string, index) {
     // console.log("%, after a variable, function or parens")
     return "op"
   }
-  
+
   // in all other cases in `<sth>% <sth>` it is most likely a unit
   if (!isWhitespaceBefore && isWhitespaceAfter) {
     // console.log("%, `<sth>% <sth>`")
@@ -602,7 +607,7 @@ function isAtEnd(string, index) {
 function isInsideParens(string, index) {
   const before = string.substring(0, index).trim()
   const after = string.substring(index + 1).trim()
-  
+
   if (
     before.search(/(?:^|[,{]|\s)\(\s*[^(){},]+$/) !== -1 &&
     after.search(/^[^(){},\s]+\s*\)/) !== -1
@@ -614,7 +619,7 @@ function isInsideParens(string, index) {
 
 function isInsideInterpolation(string, index) {
   const before = string.substring(0, index).trim()
-  
+
   if (before.search(/#\{[^}]*$/) !== -1) {
     return true
   }
@@ -635,12 +640,12 @@ function isInsideFunctionCall(string, index) {
   const before = string.substring(0, index).trim()
   const after = string.substring(index + 1).trim()
   const beforeMatch = before.match(/([a-zA-Z_-][a-zA-Z0-9_-]*)\([^(){},]+$/)
-  
+
   if (beforeMatch && beforeMatch[0] && after.search(/^[^({},]+\)/) !== -1) {
     result.is = true
     result.fn = beforeMatch[1]
   }
-  
+
   return result
 }
 
@@ -656,7 +661,7 @@ function isInsideFunctionCall(string, index) {
 function isStringBefore(before) {
   const result = { is: false, opsBetween: false }
   const stringOpsClipped = before.replace(/(\s*[+/*%]|\s+-)+$/, "")
-  
+
   if (stringOpsClipped !== before) { result.opsBetween = true }
   // If it is quoted
   if (stringOpsClipped[stringOpsClipped.length - 1] == "\"" ||
@@ -666,7 +671,7 @@ function isStringBefore(before) {
   } else if (
     stringOpsClipped.search(/(?:^|[/(){},: ])([a-zA-Z_][a-zA-Z_0-9-]*|-+[a-zA-Z_]+[a-zA-Z_0-9-]*)$/) !== -1
   ) {
-    // First pattern: a1, a1a, a-1, 
+    // First pattern: a1, a1a, a-1,
     result.is = true
   }
 
@@ -682,7 +687,7 @@ function isStringAfter(after) {
   )
     return true
 
-  // e.g. `a1`, `a1a`, `a-1`, and even `--s323` 
+  // e.g. `a1`, `a1a`, `a-1`, and even `--s323`
   if (stringTrimmed.search(/^([a-zA-Z_][a-zA-Z_0-9-]*|-+[a-zA-Z_]+[a-zA-Z_0-9-]*)(?:$|[)}, ])/) !== -1)
     return true
 
