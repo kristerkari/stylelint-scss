@@ -1,10 +1,10 @@
 /**
  * Create configurationError from text and set CLI exit code
- *
  * @param {string} text
- * @return {Error} - The error, with text and exit code
+ * @returns {Object}
  */
-export default function(text) {
+export default function(text) /* Object */ {
+  /** @type {Error & {code?: number}} */
   const err = new Error(text);
 
   err.code = 78;

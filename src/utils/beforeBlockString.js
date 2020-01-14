@@ -1,30 +1,45 @@
-/**
- * Given a CSS statement, return the string before the block.
- * For rules, this is the selector list (and surrounding whitespace).
- * For at-rules, this is the name and params (and surrounding whitespace).
- *
- * If there is no block, return empty string.
- *
- * @param {Rule|AtRule} statement - postcss rule or at-rule node
- * @param {object} options
- * @param {boolean} [options.noRawBefore] - Leave out the `before` string
- * @return {string}
- */
-export default function(statement, { noRawBefore } = {}) {
-  let result = "";
+/** @typedef {import('postcss').Rule} Rule */
+/** @typedef {import('postcss').AtRule} AtRule */
 
-  if (statement.type !== "rule" && statement.type !== "atrule") {
+/**
+ * @param {Rule | AtRule} statement
+ * @param {{
+ * 	noRawBefore?: boolean
+ * }} options
+ *
+ * @returns {string}
+ */
+export default function(statement, options = {}) {
+  let result = "";
+  /** @type {Rule | undefined} */
+  let rule; /*?: postcss$rule*/
+  /** @type {AtRule | undefined} */
+  let atRule; /*?: postcss$atRule*/
+
+  if (statement.type === "rule") {
+    rule = statement;
+  }
+
+  if (statement.type === "atrule") {
+    atRule = statement;
+  }
+
+  if (!rule && !atRule) {
     return result;
   }
 
-  if (!noRawBefore) {
-    result += statement.raws.before;
+  const before = statement.raws.before || "";
+
+  if (!options.noRawBefore) {
+    result += before;
   }
 
-  if (statement.type === "rule") {
-    result += statement.selector;
-  } else {
-    result += `@${statement.name}${statement.raws.afterName}${statement.params}`;
+  if (rule) {
+    result += rule.selector;
+  }
+
+  if (atRule) {
+    result += `@${atRule.name}${atRule.raws.afterName || ""}${atRule.params}`;
   }
 
   const between = statement.raws.between;

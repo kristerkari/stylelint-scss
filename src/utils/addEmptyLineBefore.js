@@ -1,8 +1,17 @@
-// Add an empty line before a node. Mutates the node.
-export function addEmptyLineBefore(
-  node /*: postcss$node*/,
-  newline /*: '\n' | '\r\n'*/
-) /*: postcss$node*/ {
+/** @typedef {import('postcss').ChildNode} ChildNode */
+
+/**
+ * Add an empty line before a node. Mutates the node.
+ *
+ * @param {ChildNode} node
+ * @param {'\n' | '\r\n'} newline
+ * @returns {ChildNode}
+ */
+export function addEmptyLineBefore(node, newline) {
+  if (node.raws.before === undefined) {
+    return node;
+  }
+
   if (!/\r?\n/.test(node.raws.before)) {
     node.raws.before = newline.repeat(2) + node.raws.before;
   } else {

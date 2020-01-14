@@ -1,13 +1,18 @@
+import { get } from "lodash";
+
 /**
  * Get the index of a declaration's value
  *
- * @param {Decl} decl
- * @return {int} The index
+ * @param {import('postcss').Declaration} decl
+ *
+ * @returns {number}
  */
 export default function(decl) {
-  const beforeColon = decl.toString().indexOf(":");
-  const afterColon =
-    decl.raw("between").length - decl.raw("between").indexOf(":");
-
-  return beforeColon + afterColon;
+  return [
+    get(decl, "raws.prop.prefix"),
+    get(decl, "raws.prop.raw", decl.prop),
+    get(decl, "raws.prop.suffix"),
+    get(decl, "raws.between", ":"),
+    get(decl, "raws.value.prefix")
+  ].reduce((count, str) => (str ? count + str.length : count), 0);
 }

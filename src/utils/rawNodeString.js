@@ -1,8 +1,9 @@
 /**
  * Stringify PostCSS node including its raw "before" string.
  *
- * @param {Node} node - Any PostCSS node
- * @return {string}
+ * @param {import('postcss').Node} node
+ *
+ * @returns {string}
  */
 export default function(node) {
   let result = "";

@@ -3,63 +3,82 @@ import isSingleLineString from "./isSingleLineString";
 import configurationError from "./configurationError";
 
 /**
+ * @typedef {object} Messages
+ * @property {function} [expectedBefore]
+ * @property {function} [rejectedBefore]
+ * @property {function} [expectedAfter]
+ * @property {function} [rejectedAfter]
+ * @property {function} [expectedBeforeSingleLine]
+ * @property {function} [rejectedBeforeSingleLine]
+ * @property {function} [expectedBeforeMultiLine]
+ * @property {function} [rejectedBeforeMultiLine]
+ * @property {function} [expectedAfterSingleLine]
+ * @property {function} [rejectedAfterSingleLine]
+ * @property {function} [expectedAfterMultiLine]
+ * @property {function} [rejectedAfterMultiLine]
+ */
+
+/**
+ * @callback WhitespaceChecker
+ * @param {object} args - Named arguments object
+ * @param {string} args.source - The source string
+ * @param {number} args.index - The index of the character to check before
+ * @param {function} args.err - If a violation is found, this callback
+ *   will be invoked with the relevant warning message.
+ *   Typically this callback will report() the violation.
+ * @param {function} args.errTarget - If a violation is found, this string
+ *   will be sent to the relevant warning message.
+ * @param {string} [args.lineCheckStr] - Single- and multi-line checkers
+ *   will use this string to determine whether they should proceed,
+ *   i.e. if this string is one line only, single-line checkers will check,
+ *   multi-line checkers will ignore.
+ *   If none is passed, they will use `source`.
+ * @param {boolean} [args.onlyOneChar=false] - Only check *one* character before.
+ *   By default, "always-*" checks will look for the `targetWhitespace` one
+ *   before and then ensure there is no whitespace two before. This option
+ *   bypasses that second check.
+ * @param {boolean} [args.allowIndentation=false] - Allow arbitrary indentation
+ *   between the `targetWhitespace` (almost definitely a newline) and the `index`.
+ *   With this option, the checker will see if a newline *begins* the whitespace before
+ *   the `index`.
+ */
+
+/**
  * Create a whitespaceChecker, which exposes the following functions:
  * - `before()`
  * - `beforeAllowingIndentation()`
  * - `after()`
  * - `afterOneOnly()`
  *
- * @param {"space"|"newline"} targetWhitespace - This is a keyword instead
+ * @param {"space" | "newline"} targetWhitespace - This is a keyword instead
  *   of the actual character (e.g. " ") in order to accommodate
  *   different styles of newline ("\n" vs "\r\n")
- * @param {
- *     "always"|"never"
- *     |"always-single-line"|"always-multi-line"
- *     | "never-single-line"|"never-multi-line"
- *   } expectation
- * @param {object} messages - An object of message functions;
+ * @param { "always" | "never" | "always-single-line" | "always-multi-line" | "never-single-line" | "never-multi-line" } expectation
+ * @param {Messages} messages - An object of message functions;
  *   calling `before*()` or `after*()` and the `expectation` that is passed
  *   determines which message functions are required
- * @param {function} [messages.expectedBefore]
- * @param {function} [messages.rejectedBefore]
- * @param {function} [messages.expectedAfter]
- * @param {function} [messages.rejectedAfter]
- * @param {function} [messages.expectedBeforeSingleLine]
- * @param {function} [messages.rejectedBeforeSingleLine]
- * @param {function} [messages.expectedBeforeMultiLine]
- * @param {function} [messages.rejectedBeforeMultiLine]
- * @return {object} The checker, with its exposed checking functions
+ *
+ * @returns {object} The checker, with its exposed checking functions
  */
 export default function(targetWhitespace, expectation, messages) {
   // Keep track of active arguments in order to avoid passing
   // too much stuff around, making signatures long and confusing.
   // This variable gets reset anytime a checking function is called.
+  /**
+	 * @type {{
+			source?: any,
+			index?: any,
+			err: any,
+			errTarget: any,
+			onlyOneChar: any,
+			allowIndentation?: any,
+		}}
+	*/
   let activeArgs;
 
   /**
    * Check for whitespace *before* a character.
-   *
-   * @param {object} args - Named arguments object
-   * @param {string} args.source - The source string
-   * @param {number} args.index - The index of the character to check before
-   * @param {function} args.err - If a violation is found, this callback
-   *   will be invoked with the relevant warning message.
-   *   Typically this callback will report() the violation.
-   * @param {function} args.errTarget - If a violation is found, this string
-   *   will be sent to the relevant warning message.
-   * @param {string} [args.lineCheckStr] - Single- and multi-line checkers
-   *   will use this string to determine whether they should proceed,
-   *   i.e. if this string is one line only, single-line checkers will check,
-   *   multi-line checkers will ignore.
-   *   If none is passed, they will use `source`.
-   * @param {boolean} [args.onlyOneChar=false] - Only check *one* character before.
-   *   By default, "always-*" checks will look for the `targetWhitespace` one
-   *   before and then ensure there is no whitespace two before. This option
-   *   bypasses that second check.
-   * @param {boolean} [args.allowIndentation=false] - Allow arbitrary indentation
-   *   between the `targetWhitespace` (almost definitely a newline) and the `index`.
-   *   With this option, the checker will see if a newline *begins* the whitespace before
-   *   the `index`.
+   * @type {WhitespaceChecker}
    */
   function before({
     source,
@@ -121,9 +140,7 @@ export default function(targetWhitespace, expectation, messages) {
 
   /**
    * Check for whitespace *after* a character.
-   *
-   * Parameters are pretty much the same as for `before()`, above, just substitute
-   * the word "after" for "before".
+   * @type {WhitespaceChecker}
    */
   function after({
     source,
@@ -170,6 +187,7 @@ export default function(targetWhitespace, expectation, messages) {
 
         rejectAfter(messages.rejectedAfterMultiLine);
         break;
+      // custom stylelint-scss case
       case "at-least-one-space":
         expectAfter(messages.expectedAfterAtLeast);
         break;
@@ -178,10 +196,16 @@ export default function(targetWhitespace, expectation, messages) {
     }
   }
 
+  /**
+   * @param {Object} obj
+   */
   function beforeAllowingIndentation(obj) {
     before(Object.assign({}, obj, { allowIndentation: true }));
   }
 
+  /**
+   * @param {Function} [messageFunc]
+   */
   function expectBefore(messageFunc = messages.expectedBefore) {
     if (activeArgs.allowIndentation) {
       expectBeforeAllowingIndentation(messageFunc);
@@ -189,7 +213,10 @@ export default function(targetWhitespace, expectation, messages) {
       return;
     }
 
-    const { source, index } = activeArgs;
+    const _activeArgs = activeArgs;
+    const source = _activeArgs.source;
+    const index = _activeArgs.index;
+
     const oneCharBefore = source[index - 1];
     const twoCharsBefore = source[index - 2];
 
@@ -197,6 +224,7 @@ export default function(targetWhitespace, expectation, messages) {
       return;
     }
 
+    // custom stylelint-scss block start
     if (targetWhitespace === "newline") {
       // If index is preceeded by a Windows CR-LF ...
       if (oneCharBefore === "\n" && twoCharsBefore === "\r") {
@@ -212,6 +240,7 @@ export default function(targetWhitespace, expectation, messages) {
         }
       }
     }
+    // custom stylelint-scss block end
 
     if (targetWhitespace === "space" && oneCharBefore === " ") {
       if (activeArgs.onlyOneChar || !isWhitespace(twoCharsBefore)) {
@@ -224,15 +253,23 @@ export default function(targetWhitespace, expectation, messages) {
     );
   }
 
+  /**
+   * @param {Function} [messageFunc]
+   */
   function expectBeforeAllowingIndentation(
     messageFunc = messages.expectedBefore
   ) {
-    const { source, index, err } = activeArgs;
+    const _activeArgs2 = activeArgs;
+    const source = _activeArgs2.source;
+    const index = _activeArgs2.index;
+    const err = _activeArgs2.err;
+
     const expectedChar = (() => {
       if (targetWhitespace === "newline") {
         return "\n";
       }
 
+      // custom stylelint-scss check
       if (targetWhitespace === "space") {
         return " ";
       }
@@ -253,8 +290,14 @@ export default function(targetWhitespace, expectation, messages) {
     }
   }
 
+  /**
+   * @param {Function} [messageFunc]
+   */
   function rejectBefore(messageFunc = messages.rejectedBefore) {
-    const { source, index } = activeArgs;
+    const _activeArgs3 = activeArgs;
+    const source = _activeArgs3.source;
+    const index = _activeArgs3.index;
+
     const oneCharBefore = source[index - 1];
 
     if (isValue(oneCharBefore) && isWhitespace(oneCharBefore)) {
@@ -264,13 +307,22 @@ export default function(targetWhitespace, expectation, messages) {
     }
   }
 
+  /**
+   * @param {Object} obj
+   */
   function afterOneOnly(obj) {
     after(Object.assign({}, obj, { onlyOneChar: true }));
   }
 
+  /**
+   * @param {Function} [messageFunc]
+   */
   function expectAfter(messageFunc = messages.expectedAfter) {
-    const { source, index } = activeArgs;
+    const _activeArgs4 = activeArgs;
+    const source = _activeArgs4.source;
+    const index = _activeArgs4.index;
 
+    // custom stylelint-scss vars
     const oneCharAfter = index + 1 < source.length ? source[index + 1] : "";
     const twoCharsAfter = index + 2 < source.length ? source[index + 2] : "";
 
@@ -281,6 +333,7 @@ export default function(targetWhitespace, expectation, messages) {
     if (targetWhitespace === "newline") {
       // If index is followed by a Windows CR-LF ...
       if (oneCharAfter === "\r" && twoCharsAfter === "\n") {
+        // custom stylelint-scss check
         const threeCharsAfter =
           index + 3 < source.length ? source[index + 3] : "";
 
@@ -299,7 +352,7 @@ export default function(targetWhitespace, expectation, messages) {
 
     if (targetWhitespace === "space" && oneCharAfter === " ") {
       if (
-        expectation === "at-least-one-space" ||
+        expectation === "at-least-one-space" || // custom stylelint-scss check
         activeArgs.onlyOneChar ||
         !isWhitespace(twoCharsAfter)
       ) {
@@ -312,8 +365,15 @@ export default function(targetWhitespace, expectation, messages) {
     );
   }
 
+  /**
+   * @param {Function} [messageFunc]
+   */
   function rejectAfter(messageFunc = messages.rejectedAfter) {
-    const { source, index } = activeArgs;
+    const _activeArgs5 = activeArgs;
+    const source = _activeArgs5.source;
+    const index = _activeArgs5.index;
+
+    // custom stylelint-scss var
     const oneCharAfter = index + 1 < source.length ? source[index + 1] : "";
 
     if (isValue(oneCharAfter) && isWhitespace(oneCharAfter)) {
@@ -331,6 +391,9 @@ export default function(targetWhitespace, expectation, messages) {
   };
 }
 
+/**
+ * @param {any} x
+ */
 function isValue(x) {
   return x !== undefined && x !== null;
 }

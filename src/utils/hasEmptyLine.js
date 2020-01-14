@@ -1,9 +1,12 @@
 /**
  * Check if a string contains at least one empty line
  *
- * @param {string} input
- * @return {boolean}
+ * @param {string} string
+ *
+ * @returns {boolean}
  */
 export default function(string) {
-  return string && (string.includes("\n\n") || string.includes("\n\r\n"));
+  if (string === "" || string === undefined) return false;
+
+  return /\n[\r\t ]*\n/.test(string);
 }
