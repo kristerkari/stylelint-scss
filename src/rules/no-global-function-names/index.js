@@ -2,6 +2,8 @@ import valueParser from "postcss-value-parser";
 import { utils } from "stylelint";
 import { declarationValueIndex, namespace } from "../../utils";
 
+const interpolationPrefix = /^#{\s*/;
+
 const rules = {
   red: "color",
   blue: "color",
@@ -126,14 +128,16 @@ export default function(value) {
 
     root.walkDecls(decl => {
       valueParser(decl.value).walk(node => {
+        const cleanValue = node.value.replace(interpolationPrefix, "");
+
         // Verify that we're only looking at functions.
-        if (node.type !== "function" || node.value === "") {
+        if (node.type !== "function" || cleanValue === "") {
           return;
         }
 
-        if (Object.keys(rules).includes(node.value)) {
+        if (Object.keys(rules).includes(cleanValue)) {
           utils.report({
-            message: messages.rejected(node.value),
+            message: messages.rejected(cleanValue),
             node: decl,
             index: declarationValueIndex(decl) + node.sourceIndex,
             result,
