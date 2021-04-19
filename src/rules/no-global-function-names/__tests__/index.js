@@ -443,6 +443,17 @@ testRule(rule, {
       column: 21,
       message: messages.rejected("change-color"),
       description: "change-color"
+    },
+    {
+      code: `
+      a {
+        background: lighten(#e1d7d2, 30%);
+      }
+    `,
+      line: 3,
+      column: 21,
+      message: messages.rejected("lighten"),
+      description: "lighten"
     }
   ]
 });

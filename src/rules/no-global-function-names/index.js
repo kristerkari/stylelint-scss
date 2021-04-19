@@ -71,7 +71,14 @@ const rules = {
   "is-superselector": "selector",
   "simple-selectors": "selector",
   "selector-parse": "selector",
-  "selector-extend": "selector"
+  "selector-extend": "selector",
+  lighten: "color",
+  "adjust-hue": "color",
+  darken: "color",
+  desaturate: "color",
+  opacify: "color",
+  saturate: "color",
+  transparentize: "color"
 };
 
 const new_rule_names = {
@@ -96,7 +103,36 @@ const new_rule_names = {
   "selector-replace": "replace",
   "selector-unify": "unify",
   "selector-parse": "parse",
-  "selector-extend": "extend"
+  "selector-extend": "extend",
+  lighten: "adjust",
+  "adjust-hue": "adjust",
+  darken: "adjust",
+  desaturate: "adjust",
+  opacify: "adjust",
+  saturate: "adjust",
+  transparentize: "adjust"
+};
+
+const rule_mapping = {
+  lighten: ["lighten($color, $amount)", "adjust($color, $lightness: $amount)"],
+  "adjust-hue": [
+    "adjust-hue($color, $amount)",
+    "adjust($color, $hue: $amount)"
+  ],
+  darken: ["darken($color, $amount)", "adjust($color, $lightness: -$amount)"],
+  desaturate: [
+    "desaturate($color, $amount)",
+    "adjust($color, $saturation: -$amount)"
+  ],
+  opacify: ["opacify($color, $amount)", "adjust($color, $alpha: -$amount)"],
+  saturate: [
+    "saturate($color, $amount)",
+    "adjust($color, $saturation: $amount)"
+  ],
+  transparentize: [
+    "transparentize($color, $amount)",
+    "adjust($color, $alpha: -$amount)"
+  ]
 };
 
 export const ruleName = namespace("no-global-function-names");
@@ -108,8 +144,15 @@ export const messages = utils.ruleMessages(ruleName, {
 function errorMessage(name) {
   const sass_package = rules[name];
   const rename = new_rule_names[name];
+  const map_rule = rule_mapping[name];
 
   if (rename) {
+    if (map_rule) {
+      const [old_rule, new_rule] = map_rule;
+
+      return `Expected ${sass_package}.${new_rule} instead of ${old_rule}`;
+    }
+
     return `Expected ${sass_package}.${rename} instead of ${name}`;
   } else {
     return `Expected ${sass_package}.${name} instead of ${name}`;
