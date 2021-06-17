@@ -432,6 +432,28 @@ testRule(rule, {
       column: 14,
       message: messages.rejected("map-values"),
       description: "map-values"
+    },
+    {
+      code: `
+      a {
+        background: #{change-color(#6b717f, $red: 15)};
+      }
+    `,
+      line: 3,
+      column: 21,
+      message: messages.rejected("change-color"),
+      description: "change-color"
+    },
+    {
+      code: `
+      a {
+        background: lighten(#e1d7d2, 30%);
+      }
+    `,
+      line: 3,
+      column: 21,
+      message: messages.rejected("lighten"),
+      description: "lighten"
     }
   ]
 });
