@@ -31,6 +31,7 @@
     "husky": "^4.2.5",
     "jest": "^25.5.4",
     "jest-cli": "^25.5.4",
+    "jest-preset-stylelint": "^2.0.0",
     "lint-staged": "^10.2.2",
     "npmpub": "^5.0.0",
     "postcss": "^7.0.29",
@@ -122,6 +123,7 @@
     "url": "git+https://github.com/kristerkari/stylelint-scss.git"
   },
   "jest": {
+    "preset": "jest-preset-stylelint",
     "clearMocks": true,
     "collectCoverage": false,
     "collectCoverageFrom": [
