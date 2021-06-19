@@ -30,7 +30,11 @@ const ruleToCheckAgainst = "at-rule-no-unknown";
 export const ruleName = namespace(ruleToCheckAgainst);
 
 export const messages = utils.ruleMessages(ruleName, {
-  rejected: rules[ruleToCheckAgainst].messages.rejected
+  rejected: (...args) => {
+    return rules[ruleToCheckAgainst].messages
+      .rejected(...args)
+      .replace(` (${ruleToCheckAgainst})`, "");
+  }
 });
 
 export default function(primaryOption, secondaryOptions) {

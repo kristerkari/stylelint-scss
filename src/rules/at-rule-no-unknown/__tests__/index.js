@@ -217,3 +217,9 @@ test("One warning for each unknown at rule", done => {
     })
     .catch(logError);
 });
+
+test("messages", () => {
+  expect(messages.rejected("@foo")).toBe(
+    'Unexpected unknown at-rule "@foo" (scss/at-rule-no-unknown)'
+  );
+});
