@@ -1,11 +1,22 @@
 # comment-no-empty
 
-Disallow empty comments.
+Disallow empty comments. Should be used **instead of** the stylelint's [comment-no-empty](https://stylelint.io/user-guide/rules/comment-no-empty) because the core rule ignores SCSS-like comments.
 
 <!-- prettier-ignore -->
 ```scss
     /* */
     //
+```
+
+To avoid duplicate issues, you must disable the core rule as follows:
+
+```json
+{
+  "rules": {
+    "comment-no-empty": null,
+    "scss/comment-no-empty": true
+  }
+}
 ```
 
 ## Options
